@@ -1,0 +1,14 @@
+{
+  "name": "20140122-redis",
+  "author": "Nicholas Cloud <me@nicholascloud.com>",
+  "version": "1.0.0",
+  "dependencies": {
+    "strata": "latest",
+    "redis": "latest",
+    "socket.io": "latest",
+    "eventemitter2": "latest",
+    "underscore": "latest",
+    "node-uuid": "latest",
+    "async": "latest"
+  }
+}

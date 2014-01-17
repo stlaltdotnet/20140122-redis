@@ -1,0 +1,119 @@
+<!doctype html>
+<hmtl>
+  <head>
+    <link type="text/css" rel="stylesheet" href="chat.css" />
+  </head>
+  <body>
+
+    <fieldset class="left">
+      <h2>Member: <span class="user-id"></span></h2>
+      <label>To</label><input class="recipient" type="text" name="recipient"/>
+      <textarea class="input"></textarea>
+      <button class="submit">Submit</button>
+      <button class="clear">Clear Output</button>
+      <button class="mark">Mark Output</button>
+      <button class="signout">Sign Out</button>
+      <div class="output"></div>
+    </fieldset>
+    <fieldset class="right">
+      <h2>Roster</h2>
+      <ul id="roster">
+        <!--
+        <li><a href="#">12345</a></li>
+        -->
+      </ul>
+    </fieldset>
+
+
+    <script src="jquery-2.0.3.js"></script>
+    <script src="loadio.js"></script>
+    <script>
+      window.chat.loadio(function onIOScriptLoad (ioURLBase) {
+        var userID = (new Date()).getTime().toString();
+        var sock = window.chat.sock = io.connect(ioURLBase);
+
+        var $recipient = $('.recipient'),
+          $input = $('.input'),
+          $output = $('.output'),
+          $userID = $('.user-id'),
+          $submit = $('.submit'),
+          $signout = $('.signout'),
+          $clear = $('.clear'),
+          $mark = $('.mark'),
+          $roster = $('#roster')
+          ;
+
+        sock.on('reconnect', function () {
+          sock.emit('chat.signedIn', userID);
+        });
+
+        sock.on('chat.message', function (from, content) {
+          var $div = $('<div class="message-text right"></div>')
+            .html('[<a href="#" data-id="$1">$1</a> => YOU] $2'
+              .replace(/\$1/g, from)
+              .replace(/\$2/g, content)
+            );
+          $output.append($div);
+          $div[0].scrollIntoView();
+        });
+
+        $roster.on('click', 'a', function (e) {
+          e.preventDefault();
+          $recipient.val($(this).data('id'));
+        });
+
+        $output.on('click', 'a', function (e) {
+          e.preventDefault();
+          $recipient.val($(this).data('id'));
+        });
+
+        sock.on('chat.roster.changed', function (userIDs) {
+          userIDs = (userIDs || []).sort();
+          $roster.empty();
+          var $lis = userIDs.map(function (id) {
+            return $('<li><a href="#" data-id="$1">$1</a></li>'.replace(/\$1/g, id));
+          });
+          $roster.append($lis);
+        });
+
+        $submit.on('click', function (e) {
+          e.preventDefault();
+          var to = $recipient.val().trim();
+          var content = $input.val().trim();
+          sock.emit('chat.messaged', to, content);
+
+          var $div = $('<div class="message-text"></div>')
+            .html('[YOU => <a href="#" data-id="$1">$1</a>] $2'
+              .replace(/\$1/g, to)
+              .replace(/\$2/g, content)
+            );
+          $output.append($div);
+          $div[0].scrollIntoView();
+
+          $input.val('');
+        });
+
+        $signout.on('click', function (e) {
+          e.preventDefault();
+          sock.emit('chat.signedOut', userID);
+          sock.disconnect();
+          $input.attr('disabled', 'disabled');
+          $submit.attr('disabled', 'disabled');
+        });
+
+        $clear.on('click', function (e) {
+          e.preventDefault();
+          $output.empty();
+        });
+
+        $mark.on('click', function (e) {
+          e.preventDefault();
+          $output.append('<hr />');
+        });
+
+        sock.emit('chat.signedIn', userID);
+        $userID.text(userID);
+      });
+    </script>
+  </body>
+</hmtl>
