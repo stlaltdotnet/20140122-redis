@@ -1,4 +1,4 @@
-20140122-redis
-==============
+# 2014-01-22 I used redis and I liked it!
 
-2013-01-22 I used redis and liked it!
+Nicholas Cloud
+
