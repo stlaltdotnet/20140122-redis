@@ -17,12 +17,29 @@ var api = {
 
   _onChatSocketSignedIn: function (userID) {
     this.signIn(userID);
+    this.emit('chat.event', {
+      to: '*',
+      handler: 'signIn',
+      parameters: [userID]
+    });
+    this.emit('roster.changed', this._roster);
   },
   _onChatSocketSignedOut: function (userID) {
     this.signOut(userID);
+    this.emit('chat.event', {
+      to: '*',
+      handler: 'signOut',
+      parameters: [userID]
+    });
+    this.emit('roster.changed', this._roster);
   },
   _onChatSocketMessaged: function (to, from, content) {
     this.message(to, from, content);
+    this.emit('chat.event', {
+      to: to,
+      handler: 'message',
+      parameters: [to, from, content]
+    });
   },
   _onChatSocketDisconnected: function (chatSocket) {
     var index = this._chatSockets.indexOf(chatSocket);
@@ -34,7 +51,29 @@ var api = {
 
   // methods to EMIT events to sockets
 
-  _broadcastRosterChange: function () {
+  signIn: function (userID) {
+    this._roster = _.union(this._roster, [userID]);
+    this._notifyRosterChange();
+  },
+  signOut: function (userID) {
+    this._roster = _.without(this._roster, userID);
+    this._notifyRosterChange();
+  },
+  message: function (to, from, content) {
+    var chatSocket = _.find(this._chatSockets, function (chatSocket) {
+      return chatSocket.userID === to;
+    });
+    if (!chatSocket) {
+      //user is not on this server
+      return;
+    }
+    chatSocket.send('chat.message', from, content);
+  },
+  updateRoster: function (userIDs) {
+    this._roster = _.union(this._roster, userIDs).sort();
+    this._notifyRosterChange();
+  },
+  _notifyRosterChange: function () {
     var self = this;
     _.chain(this._chatSockets)
       .filter(function (chatSocket) {
@@ -42,31 +81,9 @@ var api = {
       })
       .each(function (chatSocket) {
         var roster = _.without(self._roster, chatSocket.userID);
-        chatSocket.send('chat.roster.changed', roster);
+        chatSocket.send('roster.changed', roster);
       })
       .value();
-  },
-  signIn: function (userID) {
-    this._roster = _.union(this._roster, [userID]);
-    this._broadcastRosterChange();
-  },
-  signOut: function (userID) {
-    this._roster = _.without(this._roster, userID);
-    this._broadcastRosterChange();
-  },
-  message: function (to, from, content) {
-    var chatSocket = _.find(this._chatSockets, function (chatSocket) {
-      return chatSocket.userID === to;
-    });
-    if (!chatSocket) {
-      console.warn('cannot find socket; dropping message');
-      return;
-    }
-    chatSocket.send('chat.message', from, content);
-  },
-
-  length: function () {
-    return this._chatSockets.length;
   }
 };
 

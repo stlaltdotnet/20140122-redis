@@ -67,7 +67,7 @@
           $recipient.val($(this).data('id'));
         });
 
-        sock.on('chat.roster.changed', function (userIDs) {
+        sock.on('roster.changed', function (userIDs) {
           userIDs = (userIDs || []).sort();
           $roster.empty();
           var $lis = userIDs.map(function (id) {
