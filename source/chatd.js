@@ -17,11 +17,13 @@ bootstrap(configFilePath, function (err, app) {
     console.info('chatSockets^roster.changed');
 
     function updateRoster(cb) {
-      app.storage.setRoster(roster, cb);
+      app.storage.setRoster(roster, function (err) {
+        cb(err);
+      });
     }
 
     function getOtherInstances(cb) {
-      app.storage.getInstances(function (err, instances) {
+      app.storage.getInstances(function handleGetInstances (err, instances) {
         if (err) {
           return cb(err);
         }
@@ -126,7 +128,7 @@ bootstrap(configFilePath, function (err, app) {
       if (err) {
         return console.error('error fetching instance roster', instanceID, err);
       }
-      app.chatSockets.updateRoster(userIDs);
+      app.chatSockets.updateRoster(instanceID, userIDs);
     });
   });
 
@@ -135,12 +137,7 @@ bootstrap(configFilePath, function (err, app) {
       if (err) {
         return console.error('error fetching rosters', err);
       }
-      var allUserIDs = _.chain(rosters || {})
-        .values()
-        .flatten()
-        .uniq()
-        .value();
-      app.chatSockets.updateRoster(allUserIDs);
+      app.chatSockets.updateRosters(rosters);
       console.log('listening...');
     });
   });

@@ -21,6 +21,7 @@ var api = {
     this.mailbox.listen();
     cb(null);
   },
+
   dispose: function (cb) {
     this.mailbox.dispose();
     this._client.removeListener('error', this._onClientError);
@@ -31,12 +32,15 @@ var api = {
     this._sub.quit();
     cb(null);
   },
+
   _onClientError: function (err) {
     console.warn('redis client down', err);
   },
+
   _onSubError: function () {
     console.warn('redis sub down');
   },
+
   _onPubError: function () {
     console.warn('redis pub down');
   }
@@ -55,7 +59,7 @@ module.exports = function (config, ioSrv) {
   inst._ioSrv = ioSrv;
 
   inst._client = redis.createClient(config.redis.port, config.redis.host);
-  inst._client.on('error', inst._onClientError);
+//  inst._client.on('error', inst._onClientError);
 
   inst._pub = redis.createClient(config.redis.port, config.redis.host);
   inst._pub.on('error', inst._onPubError);
@@ -64,7 +68,7 @@ module.exports = function (config, ioSrv) {
   inst._sub.on('error', inst._onSubError);
 
   inst.mailbox = new MailBox(config, inst._pub, inst._sub);
-  inst.chatSockets = new ChatSocketCollection();
+  inst.chatSockets = new ChatSocketCollection(config);
   inst.storage = new Storage(config, inst._client);
 
   return inst;

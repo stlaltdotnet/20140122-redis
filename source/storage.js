@@ -31,16 +31,24 @@ var api = {
 
   getRoster: function (instance, cb) {
     this._client.hget('altnet:rosters', instance, function (err, roster) {
-      if (err) {
-        return cb(err);
+      try {
+        if (err) {
+          return cb(err);
+        }
+        roster = roster || [];
+        cb(null, roster.split(','));
+      } catch (ex) {
+        console.error(ex);
       }
-      roster = roster || [];
-      cb(null, roster.split(','));
     });
   },
 
   getInstances: function (cb) {
-    this._client.hkeys('altnet:rosters', cb);
+    try {
+      this._client.hkeys('altnet:rosters', cb);
+    } catch (ex) {
+      console.error(ex);
+    }
   },
 
   storeMessage: function (instances, message, cb) {
