@@ -1,4 +1,9 @@
 #!/bin/sh
+#
+# This script copies the ./source directory to ./source2,
+# and updates the configuration of ./source2 so that two
+# instances of the application can be run at the same time.
+#
 echo 'copying ./source ./source2'
 rm -rf ./source2
 cp -r ./source ./source2
