@@ -7,7 +7,15 @@
 
     <fieldset class="left">
       <h2>Member: <span class="user-id"></span></h2>
-      <label>To</label><input class="recipient" type="text" name="recipient"/>
+      <div>
+        <label>From</label>
+        <input class="sender" type="text" name="sender"/>
+        <button class="signin">Sign In</button>
+      </div>
+      <div>
+        <label>To</label>
+        <input class="recipient" type="text" name="recipient" readonly="readonly"/>
+      </div>
       <textarea class="input"></textarea>
       <button class="submit">Submit</button>
       <button class="clear">Clear Output</button>
@@ -29,10 +37,11 @@
     <script src="loadio.js"></script>
     <script>
       window.chat.loadio(function onIOScriptLoad (ioURLBase) {
-        var userID = (new Date()).getTime().toString();
         var sock = window.chat.sock = io.connect(ioURLBase);
 
-        var $recipient = $('.recipient'),
+        var $signin = $('.signin'),
+          $sender = $('.sender'),
+          $recipient = $('.recipient'),
           $input = $('.input'),
           $output = $('.output'),
           $userID = $('.user-id'),
@@ -80,10 +89,14 @@
           e.preventDefault();
           var to = $recipient.val().trim();
           var content = $input.val().trim();
+          if (!to || !content) {
+            return;
+          }
           sock.emit('chat.messaged', to, content);
 
           var $div = $('<div class="message-text"></div>')
-            .html('[YOU => <a href="#" data-id="$1">$1</a>] $2'
+            .html('[$0 => <a href="#" data-id="$1">$1</a>] $2'
+              .replace(/\$0/g, $sender.val().trim())
               .replace(/\$1/g, to)
               .replace(/\$2/g, content)
             );
@@ -111,8 +124,19 @@
           $output.append('<hr />');
         });
 
-        sock.emit('chat.signedIn', userID);
-        $userID.text(userID);
+        $signin.on('click', function (e) {
+          e.preventDefault();
+          var userID = $sender.val().trim();
+          if (!userID) {
+            return;
+          }
+          sock.emit('chat.signedIn', userID);
+          $userID.text(userID);
+          $signin.attr('disabled', 'disabled');
+          $sender.attr('readonly', 'readonly');
+          $recipient.removeAttr('readonly');
+        });
+
       });
     </script>
   </body>

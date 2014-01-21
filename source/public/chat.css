@@ -25,6 +25,12 @@ input[type=text],
 label {
   font-size: 1.2em;
 }
+label {
+  display: inline-block;
+  width: 3em;
+  text-align: right;
+}
+
 
 .input {
   width: 100%;
