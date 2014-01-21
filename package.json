@@ -3,12 +3,11 @@
   "author": "Nicholas Cloud <me@nicholascloud.com>",
   "version": "1.0.0",
   "dependencies": {
-    "strata": "latest",
-    "redis": "latest",
-    "socket.io": "latest",
-    "eventemitter2": "latest",
-    "underscore": "latest",
-    "node-uuid": "latest",
-    "async": "latest"
+    "strata": "0.20.1",
+    "redis": "0.10.0",
+    "socket.io": "0.9.16",
+    "eventemitter2": "0.4.13",
+    "underscore": "1.5.2",
+    "async": "0.2.9"
   }
 }
